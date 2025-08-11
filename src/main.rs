@@ -1,6 +1,6 @@
 use clap::Parser;
 use std::fs::{self, OpenOptions};
-use std::io::Write;
+use std::io::{Write, Seek, SeekFrom, Read};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -42,11 +42,42 @@ fn main() {
 
     if let Some(filename) = args.output {
         let result = if args.append {
-            OpenOptions::new()
+            let mut file = OpenOptions::new()
                 .create(true)
                 .append(true)
                 .open(&filename)
-                .and_then(|mut file| writeln!(file, "{}", output))
+                .unwrap_or_else(|e| {
+                    eprintln!("Error opening {}: {}", filename, e);
+                    std::process::exit(1);
+                });
+
+            let mut need_newline = false;
+            if let Ok(metadata) = file.metadata() {
+                if metadata.len() > 0 {
+                    if file.seek(SeekFrom::End(-1)).is_ok() {
+                        let mut last_byte = [0u8];
+                        if file.read_exact(&mut last_byte).is_ok() {
+                            if last_byte[0] != b'\n' && last_byte[0] != b'\r' {
+                                need_newline = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if need_newline {
+                file.write_all(b"\n").unwrap_or_else(|e| {
+                    eprintln!("Error writing newline to {}: {}", filename, e);
+                    std::process::exit(1);
+                });
+            }
+
+            writeln!(file, "{}", output).unwrap_or_else(|e| {
+                eprintln!("Error writing to {}: {}", filename, e);
+                std::process::exit(1);
+            });
+
+            Ok(())
         } else {
             fs::write(&filename, &output)
         };
