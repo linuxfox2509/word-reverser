@@ -1,4 +1,5 @@
 use clap::Parser;
+use std::fs;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -7,6 +8,9 @@ struct Args {
 
     #[arg(short = 'w', long = "words", help = "Reverse words but keep their order")]
     words: bool,
+
+    #[arg(short = 'o', long = "output", help = "Write the reversed text into a file")]
+    output: Option<String>,
 }
 
 fn main() {
@@ -24,5 +28,12 @@ fn main() {
         input.chars().rev().collect()
     };
 
-    println!("{}", output);
+    if let Some(filename) = args.output {
+        if let Err(e) = fs::write(&filename, &output) {
+            eprintln!("Error writing to {}: {}", filename, e);
+            std::process::exit(1);
+        }
+    } else {
+        println!("{}", output);
+    }
 }
