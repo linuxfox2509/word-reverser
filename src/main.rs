@@ -1,11 +1,14 @@
 use clap::Parser;
 use std::fs::{self, OpenOptions};
-use std::io::{Write, Seek, SeekFrom, Read};
+use std::io::{Read, Seek, SeekFrom, Write};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
     text: Vec<String>,
+
+    #[arg(short = 'i', long = "input", help = "Read input text from a file instead of command line arguments")]
+    input: Option<String>,
 
     #[arg(short = 'w', long = "words", help = "Reverse words but keep their order")]
     words: bool,
@@ -28,7 +31,14 @@ fn main() {
         std::process::exit(1);
     }
 
-    let input = args.text.join(" ");
+    let input = if let Some(input_file) = args.input {
+        fs::read_to_string(input_file).unwrap_or_else(|e| {
+            eprintln!("Error reading input file: {}", e);
+            std::process::exit(1);
+        })
+    } else {
+        args.text.join(" ")
+    };
 
     let output = if args.words {
         input

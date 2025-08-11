@@ -1,2 +1,15 @@
 dlroW olleHdlroW olleH
 dlroW olleH
+txt.tset i
+
+i test.txt
+Hello World
+Hello WorldHello World
+
+dlroW olleHdlroW olleH
+dlroW olleH
+txt.tset i
+
+i test.txt
+Hello World
+Hello WorldHello World
