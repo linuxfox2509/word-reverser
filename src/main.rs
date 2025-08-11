@@ -11,6 +11,9 @@ struct Args {
 
     #[arg(short = 'o', long = "output", help = "Write the reversed text into a file")]
     output: Option<String>,
+
+    #[arg(short = 's', long = "silent", help = "Do not print the reversed text to the console (Use with -o/--output)")]
+    silent: bool,
 }
 
 fn main() {
@@ -33,7 +36,9 @@ fn main() {
             eprintln!("Error writing to {}: {}", filename, e);
             std::process::exit(1);
         }
-    } else {
+    }
+
+    if !args.silent {
         println!("{}", output);
     }
 }
